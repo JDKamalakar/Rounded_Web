@@ -70,7 +70,7 @@ class PopupController {
       if (item.classList.contains('preview-button')) {
         item.addEventListener('mouseenter', () => {
           item.style.transform = 'translateY(-2px)';
-          item.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+          item.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
         });
         
         item.addEventListener('mouseleave', () => {
@@ -93,6 +93,12 @@ class PopupController {
     try {
       // Get current tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+        this.showUnsupportedPage();
+        return;
+      }
+      
       const url = new URL(tab.url);
       this.currentDomain = url.hostname;
       
@@ -100,12 +106,17 @@ class PopupController {
       this.elements.currentDomain.textContent = this.currentDomain;
       
       // Get status from content script
-      const response = await chrome.tabs.sendMessage(tab.id, { action: 'getStatus' });
-      
-      if (response) {
-        this.isEnabled = response.enabled;
-        this.cornerRadius = response.radius;
+      try {
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'getStatus' });
         
+        if (response) {
+          this.isEnabled = response.enabled;
+          this.cornerRadius = response.radius;
+          
+          this.updateUI();
+        }
+      } catch (error) {
+        console.log('PopupController: Content script not ready, using defaults');
         this.updateUI();
       }
 
@@ -116,6 +127,31 @@ class PopupController {
       console.log('PopupController: Could not load state, using defaults');
       this.updateUI();
     }
+  }
+
+  showUnsupportedPage() {
+    this.elements.currentDomain.textContent = 'Unsupported page';
+    this.elements.siteToggle.style.display = 'none';
+    this.elements.radiusControl.style.display = 'none';
+    this.elements.inspectorControl.style.display = 'none';
+    this.elements.previewSection.style.display = 'none';
+    
+    const message = document.createElement('div');
+    message.style.cssText = `
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+      font-size: 14px;
+    `;
+    message.innerHTML = `
+      <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
+      <div><strong>Extension not available</strong></div>
+      <div style="margin-top: 8px; font-size: 12px;">
+        This extension doesn't work on Chrome internal pages
+      </div>
+    `;
+    
+    this.elements.content.appendChild(message);
   }
 
   async loadExcludedSelectors() {
@@ -351,12 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add smooth entrance animation
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.querySelector('.popup-container');
-  container.style.opacity = '0';
-  container.style.transform = 'translateY(10px)';
-  
-  setTimeout(() => {
-    container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    container.style.opacity = '1';
-    container.style.transform = 'translateY(0)';
-  }, 50);
+  if (container) {
+    container.style.opacity = '0';
+    container.style.transform = 'translateY(10px)';
+    
+    setTimeout(() => {
+      container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      container.style.opacity = '1';
+      container.style.transform = 'translateY(0)';
+    }, 50);
+  }
 });

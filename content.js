@@ -17,7 +17,9 @@ class RoundedWebExtension {
     await this.loadSettings();
     this.setupMessageListener();
     this.checkFirstVisit();
-    this.applyRoundedCorners();
+    if (this.isEnabled) {
+      this.applyRoundedCorners();
+    }
     this.setupMutationObserver();
     this.setupInspectorMode();
   }
@@ -54,7 +56,9 @@ class RoundedWebExtension {
       
       if (!visitedSites.includes(this.currentDomain)) {
         // First visit - trigger glowing animation
-        this.triggerGlowingAnimation();
+        setTimeout(() => {
+          this.triggerGlowingAnimation();
+        }, 1000);
         
         // Mark site as visited
         visitedSites.push(this.currentDomain);
@@ -79,9 +83,9 @@ class RoundedWebExtension {
       height: 100vh;
       pointer-events: none;
       z-index: 999999;
-      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-        rgba(147, 51, 234, 0.3) 0%, 
-        rgba(147, 51, 234, 0.1) 30%, 
+      background: radial-gradient(circle at 50% 50%, 
+        rgba(59, 130, 246, 0.2) 0%, 
+        rgba(59, 130, 246, 0.1) 30%, 
         transparent 70%);
       opacity: 0;
       transition: opacity 0.5s ease;
@@ -115,7 +119,7 @@ class RoundedWebExtension {
       if (this.shouldApplyRounding(element)) {
         setTimeout(() => {
           this.applyGlowingRoundingToElement(element);
-        }, index * 50); // Stagger animation
+        }, index * 30); // Stagger animation
       }
     });
   }
@@ -123,7 +127,7 @@ class RoundedWebExtension {
   applyGlowingRoundingToElement(element) {
     // Create glow effect
     const originalBoxShadow = element.style.boxShadow;
-    const glowShadow = `0 0 20px rgba(147, 51, 234, 0.6), 0 0 40px rgba(147, 51, 234, 0.4)`;
+    const glowShadow = `0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2)`;
     
     element.style.transition = 'border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.8s ease';
     element.style.boxShadow = glowShadow;
@@ -147,7 +151,9 @@ class RoundedWebExtension {
           break;
         case 'updateRadius':
           this.cornerRadius = message.radius;
-          this.applyRoundedCorners();
+          if (this.isEnabled) {
+            this.applyRoundedCorners();
+          }
           sendResponse({ success: true });
           break;
         case 'getStatus':
@@ -202,42 +208,44 @@ class RoundedWebExtension {
     this.inspectorOverlay = document.createElement('div');
     this.inspectorOverlay.id = 'rounded-web-inspector-overlay';
     this.inspectorOverlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(147, 51, 234, 0.1);
-      z-index: 999998;
-      cursor: crosshair;
-      backdrop-filter: blur(2px);
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(59, 130, 246, 0.05) !important;
+      z-index: 999998 !important;
+      cursor: crosshair !important;
+      backdrop-filter: blur(2px) !important;
+      pointer-events: auto !important;
     `;
     
     // Create tooltip
     this.inspectorTooltip = document.createElement('div');
     this.inspectorTooltip.id = 'rounded-web-inspector-tooltip';
     this.inspectorTooltip.style.cssText = `
-      position: fixed;
-      background: rgba(17, 24, 39, 0.95);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-family: monospace;
-      z-index: 999999;
-      pointer-events: none;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(147, 51, 234, 0.3);
-      max-width: 300px;
-      word-break: break-all;
+      position: fixed !important;
+      background: rgba(0, 0, 0, 0.9) !important;
+      color: white !important;
+      padding: 12px 16px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace !important;
+      z-index: 999999 !important;
+      pointer-events: none !important;
+      backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      max-width: 300px !important;
+      word-break: break-all !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
     `;
     
     document.body.appendChild(this.inspectorOverlay);
     document.body.appendChild(this.inspectorTooltip);
     
     // Add event listeners
-    document.addEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('click', this.handleClick);
+    this.inspectorOverlay.addEventListener('mousemove', this.handleMouseMove);
+    this.inspectorOverlay.addEventListener('click', this.handleClick);
     document.addEventListener('keydown', this.handleKeyPress);
     
     // Show instructions
@@ -263,22 +271,23 @@ class RoundedWebExtension {
     }
     
     // Remove event listeners
-    document.removeEventListener('mousemove', this.handleMouseMove);
-    document.removeEventListener('click', this.handleClick);
     document.removeEventListener('keydown', this.handleKeyPress);
   }
 
   handleMouseMove(e) {
-    if (!this.inspectorMode) return;
+    if (!this.inspectorMode || !this.inspectorTooltip) return;
     
     // Update tooltip position
-    this.inspectorTooltip.style.left = (e.clientX + 10) + 'px';
-    this.inspectorTooltip.style.top = (e.clientY + 10) + 'px';
+    this.inspectorTooltip.style.left = (e.clientX + 15) + 'px';
+    this.inspectorTooltip.style.top = (e.clientY + 15) + 'px';
     
     // Get element under cursor (excluding overlay)
+    this.inspectorOverlay.style.pointerEvents = 'none';
     const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+    this.inspectorOverlay.style.pointerEvents = 'auto';
     
-    if (elementUnderCursor && elementUnderCursor !== this.currentHoveredElement) {
+    if (elementUnderCursor && elementUnderCursor !== this.currentHoveredElement && 
+        elementUnderCursor !== this.inspectorOverlay && elementUnderCursor !== this.inspectorTooltip) {
       // Remove previous highlight
       if (this.currentHoveredElement) {
         this.removeElementHighlight(this.currentHoveredElement);
@@ -299,8 +308,11 @@ class RoundedWebExtension {
     e.preventDefault();
     e.stopPropagation();
     
+    this.inspectorOverlay.style.pointerEvents = 'none';
     const element = document.elementFromPoint(e.clientX, e.clientY);
-    if (element) {
+    this.inspectorOverlay.style.pointerEvents = 'auto';
+    
+    if (element && element !== this.inspectorOverlay && element !== this.inspectorTooltip) {
       const selector = this.generateSelector(element);
       this.addExcludedSelector(selector);
       
@@ -313,14 +325,14 @@ class RoundedWebExtension {
     if (e.key === 'Escape') {
       this.toggleInspectorMode();
       // Send message to popup to update UI
-      chrome.runtime.sendMessage({ action: 'inspectorToggled', active: false });
+      chrome.runtime.sendMessage({ action: 'inspectorToggled', active: false }).catch(() => {});
     }
   }
 
   addElementHighlight(element) {
-    element.style.outline = '2px solid #9333ea';
+    element.style.outline = '2px solid #3b82f6';
     element.style.outlineOffset = '2px';
-    element.style.backgroundColor = 'rgba(147, 51, 234, 0.1)';
+    element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
   }
 
   removeElementHighlight(element) {
@@ -332,7 +344,7 @@ class RoundedWebExtension {
   updateTooltip(element) {
     const selector = this.generateSelector(element);
     const tagName = element.tagName.toLowerCase();
-    const className = element.className ? `.${element.className.split(' ').join('.')}` : '';
+    const className = element.className ? `.${element.className.split(' ').filter(c => c.trim()).join('.')}` : '';
     const id = element.id ? `#${element.id}` : '';
     
     this.inspectorTooltip.innerHTML = `
@@ -340,7 +352,7 @@ class RoundedWebExtension {
       ${id ? `<div><strong>ID:</strong> ${id}</div>` : ''}
       ${className ? `<div><strong>Class:</strong> ${className}</div>` : ''}
       <div><strong>Selector:</strong> ${selector}</div>
-      <div style="margin-top: 4px; font-size: 10px; opacity: 0.8;">Click to exclude • ESC to exit</div>
+      <div style="margin-top: 8px; font-size: 10px; opacity: 0.8;">Click to exclude • ESC to exit</div>
     `;
   }
 
@@ -392,7 +404,9 @@ class RoundedWebExtension {
       });
       
       // Reapply rounding
-      this.applyRoundedCorners();
+      if (this.isEnabled) {
+        this.applyRoundedCorners();
+      }
     } catch (error) {
       console.error('RoundedWeb: Error removing excluded selector:', error);
     }
@@ -420,14 +434,15 @@ class RoundedWebExtension {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: rgba(16, 185, 129, 0.95);
+      background: rgba(34, 197, 94, 0.95);
       color: white;
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 14px;
       z-index: 999999;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     `;
     
     confirmation.innerHTML = `
@@ -449,15 +464,16 @@ class RoundedWebExtension {
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(17, 24, 39, 0.95);
+      background: rgba(0, 0, 0, 0.9);
       color: white;
       padding: 16px 20px;
       border-radius: 12px;
       font-size: 14px;
       z-index: 999999;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(147, 51, 234, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.3);
       text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     `;
     
     instructions.innerHTML = `
@@ -544,15 +560,35 @@ class RoundedWebExtension {
       'div[class*="panel"]',
       'div[class*="item"]',
       'div[class*="block"]',
+      'div[class*="post"]',
+      'div[class*="article"]',
+      'div[class*="section"]',
+      'div[class*="hero"]',
+      'div[class*="banner"]',
+      'div[class*="feature"]',
+      'div[class*="grid"]',
+      'div[class*="row"]',
+      'div[class*="col"]',
+      'div[class*="sidebar"]',
+      'div[class*="main"]',
+      'div[class*="primary"]',
+      'div[class*="secondary"]',
+      'div[class*="widget"]',
+      'div[class*="module"]',
+      'div[class*="component"]',
       'input[type="text"]',
       'input[type="email"]',
       'input[type="password"]',
       'input[type="search"]',
+      'input[type="url"]',
+      'input[type="tel"]',
+      'input[type="number"]',
       'textarea',
       'select',
       'button',
       '.btn',
-      'a[class*="button"]'
+      'a[class*="button"]',
+      '[role="button"]'
     ];
 
     return document.querySelectorAll(selectors.join(', '));
@@ -573,7 +609,7 @@ class RoundedWebExtension {
     
     // Skip very small elements (likely icons)
     const rect = element.getBoundingClientRect();
-    if (rect.width < 20 || rect.height < 20) return false;
+    if (rect.width < 30 || rect.height < 30) return false;
     
     // Skip if element is not visible
     if (rect.width === 0 || rect.height === 0) return false;
@@ -584,7 +620,7 @@ class RoundedWebExtension {
     
     // Skip if element already has significant border-radius
     const currentRadius = parseInt(computedStyle.borderRadius) || 0;
-    if (currentRadius >= this.cornerRadius * 0.8) return false;
+    if (currentRadius >= this.cornerRadius * 0.7) return false;
     
     return true;
   }
