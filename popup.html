@@ -48,12 +48,41 @@
         </div>
       </div>
 
+      <!-- Inspector Tool -->
+      <div class="control-group" id="inspectorControl">
+        <div class="control-header">
+          <h3>Element Inspector</h3>
+          <span class="value" id="excludedCount">0 excluded</span>
+        </div>
+        <div class="inspector-controls">
+          <button class="inspector-btn" id="inspectorToggle">
+            <span class="inspector-icon">🔍</span>
+            <span class="inspector-text" id="inspectorText">Start Inspector</span>
+          </button>
+          <button class="manage-btn" id="manageExcluded">
+            <span class="manage-icon">⚙️</span>
+            <span class="manage-text">Manage</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Excluded Elements List (Hidden by default) -->
+      <div class="control-group excluded-list" id="excludedList" style="display: none;">
+        <div class="control-header">
+          <h3>Excluded Elements</h3>
+          <button class="close-btn" id="closeExcluded">×</button>
+        </div>
+        <div class="excluded-items" id="excludedItems">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
       <!-- Preview -->
       <div class="preview-section" id="previewSection">
         <h3>Preview</h3>
         <div class="preview-grid">
-          <div class="preview-item preview-image" id="previewImage"></div>
-          <div class="preview-item preview-video" id="previewVideo"></div>
+          <div class="preview-item preview-image" id="previewImage">Image</div>
+          <div class="preview-item preview-video" id="previewVideo">Video</div>
           <div class="preview-item preview-button" id="previewButton">Button</div>
           <div class="preview-item preview-card" id="previewCard">Card</div>
         </div>
@@ -63,7 +92,7 @@
     <!-- Footer -->
     <div class="footer">
       <div class="footer-text">
-        Transform your web experience
+        Transform your web experience with smart rounding
       </div>
     </div>
   </div>

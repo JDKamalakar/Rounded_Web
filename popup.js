@@ -4,6 +4,8 @@ class PopupController {
     this.isEnabled = true;
     this.cornerRadius = 12;
     this.currentDomain = '';
+    this.inspectorMode = false;
+    this.excludedSelectors = [];
     
     this.initializeElements();
     this.setupEventListeners();
@@ -20,6 +22,14 @@ class PopupController {
       radiusSlider: document.getElementById('radiusSlider'),
       radiusValue: document.getElementById('radiusValue'),
       sliderFill: document.getElementById('sliderFill'),
+      inspectorControl: document.getElementById('inspectorControl'),
+      inspectorToggle: document.getElementById('inspectorToggle'),
+      inspectorText: document.getElementById('inspectorText'),
+      manageExcluded: document.getElementById('manageExcluded'),
+      excludedCount: document.getElementById('excludedCount'),
+      excludedList: document.getElementById('excludedList'),
+      excludedItems: document.getElementById('excludedItems'),
+      closeExcluded: document.getElementById('closeExcluded'),
       previewSection: document.getElementById('previewSection'),
       previewItems: document.querySelectorAll('.preview-item')
     };
@@ -40,6 +50,21 @@ class PopupController {
       this.saveRadius(parseInt(e.target.value));
     });
 
+    // Inspector toggle
+    this.elements.inspectorToggle.addEventListener('click', () => {
+      this.toggleInspector();
+    });
+
+    // Manage excluded elements
+    this.elements.manageExcluded.addEventListener('click', () => {
+      this.toggleExcludedList();
+    });
+
+    // Close excluded list
+    this.elements.closeExcluded.addEventListener('click', () => {
+      this.hideExcludedList();
+    });
+
     // Preview button hover effect
     this.elements.previewItems.forEach(item => {
       if (item.classList.contains('preview-button')) {
@@ -52,6 +77,14 @@ class PopupController {
           item.style.transform = 'translateY(0)';
           item.style.boxShadow = 'none';
         });
+      }
+    });
+
+    // Listen for inspector mode changes from content script
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'inspectorToggled') {
+        this.inspectorMode = message.active;
+        this.updateInspectorUI();
       }
     });
   }
@@ -75,9 +108,28 @@ class PopupController {
         
         this.updateUI();
       }
+
+      // Load excluded selectors
+      await this.loadExcludedSelectors();
+      
     } catch (error) {
       console.log('PopupController: Could not load state, using defaults');
       this.updateUI();
+    }
+  }
+
+  async loadExcludedSelectors() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'getExcludedSelectors' });
+      
+      if (response && response.selectors) {
+        this.excludedSelectors = response.selectors;
+        this.updateExcludedCount();
+        this.renderExcludedList();
+      }
+    } catch (error) {
+      console.log('PopupController: Could not load excluded selectors');
     }
   }
 
@@ -98,6 +150,31 @@ class PopupController {
       
     } catch (error) {
       console.error('PopupController: Error toggling site:', error);
+    }
+  }
+
+  async toggleInspector() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleInspector' });
+      
+      if (response) {
+        this.inspectorMode = response.inspectorMode;
+        this.updateInspectorUI();
+        
+        // Add visual feedback
+        this.elements.inspectorToggle.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.elements.inspectorToggle.style.transform = 'scale(1)';
+        }, 150);
+
+        // Close popup if inspector is activated
+        if (this.inspectorMode) {
+          window.close();
+        }
+      }
+    } catch (error) {
+      console.error('PopupController: Error toggling inspector:', error);
     }
   }
 
@@ -125,6 +202,80 @@ class PopupController {
     }
   }
 
+  toggleExcludedList() {
+    const isVisible = this.elements.excludedList.style.display !== 'none';
+    
+    if (isVisible) {
+      this.hideExcludedList();
+    } else {
+      this.showExcludedList();
+    }
+  }
+
+  showExcludedList() {
+    this.elements.excludedList.style.display = 'flex';
+    this.renderExcludedList();
+  }
+
+  hideExcludedList() {
+    this.elements.excludedList.style.display = 'none';
+  }
+
+  renderExcludedList() {
+    this.elements.excludedItems.innerHTML = '';
+    
+    if (this.excludedSelectors.length === 0) {
+      const emptyMessage = document.createElement('div');
+      emptyMessage.style.cssText = `
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+        padding: 20px;
+      `;
+      emptyMessage.textContent = 'No excluded elements yet. Use the inspector to exclude elements.';
+      this.elements.excludedItems.appendChild(emptyMessage);
+      return;
+    }
+
+    this.excludedSelectors.forEach(selector => {
+      const item = document.createElement('div');
+      item.className = 'excluded-item';
+      
+      const selectorSpan = document.createElement('span');
+      selectorSpan.className = 'excluded-selector';
+      selectorSpan.textContent = selector;
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.innerHTML = '×';
+      removeBtn.addEventListener('click', () => {
+        this.removeExcludedSelector(selector);
+      });
+      
+      item.appendChild(selectorSpan);
+      item.appendChild(removeBtn);
+      this.elements.excludedItems.appendChild(item);
+    });
+  }
+
+  async removeExcludedSelector(selector) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      await chrome.tabs.sendMessage(tab.id, { 
+        action: 'removeExcludedSelector', 
+        selector: selector 
+      });
+      
+      // Update local state
+      this.excludedSelectors = this.excludedSelectors.filter(s => s !== selector);
+      this.updateExcludedCount();
+      this.renderExcludedList();
+      
+    } catch (error) {
+      console.error('PopupController: Error removing excluded selector:', error);
+    }
+  }
+
   updateUI() {
     // Update status indicator
     const statusDot = this.elements.statusIndicator.querySelector('.status-dot');
@@ -146,14 +297,32 @@ class PopupController {
     // Update controls visibility
     if (this.isEnabled) {
       this.elements.radiusControl.classList.remove('disabled');
+      this.elements.inspectorControl.classList.remove('disabled');
       this.elements.previewSection.classList.remove('disabled');
     } else {
       this.elements.radiusControl.classList.add('disabled');
+      this.elements.inspectorControl.classList.add('disabled');
       this.elements.previewSection.classList.add('disabled');
     }
 
     this.updateRadiusDisplay();
     this.updatePreview();
+    this.updateInspectorUI();
+  }
+
+  updateInspectorUI() {
+    if (this.inspectorMode) {
+      this.elements.inspectorToggle.classList.add('active');
+      this.elements.inspectorText.textContent = 'Stop Inspector';
+    } else {
+      this.elements.inspectorToggle.classList.remove('active');
+      this.elements.inspectorText.textContent = 'Start Inspector';
+    }
+  }
+
+  updateExcludedCount() {
+    const count = this.excludedSelectors.length;
+    this.elements.excludedCount.textContent = `${count} excluded`;
   }
 
   updateRadiusDisplay() {

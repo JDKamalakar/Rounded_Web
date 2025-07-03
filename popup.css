@@ -6,8 +6,8 @@
 }
 
 body {
-  width: 360px;
-  min-height: 480px;
+  width: 380px;
+  min-height: 520px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: linear-gradient(135deg, 
     rgba(147, 51, 234, 0.1) 0%, 
@@ -140,7 +140,9 @@ body {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .control-group {
@@ -321,6 +323,150 @@ body {
   transition: width 0.2s ease;
 }
 
+/* Inspector Controls */
+.inspector-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.inspector-btn, .manage-btn {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.inspector-btn {
+  background: rgba(147, 51, 234, 0.1);
+  color: #9333ea;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+.inspector-btn:hover {
+  background: rgba(147, 51, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.inspector-btn.active {
+  background: linear-gradient(135deg, #9333ea 0%, #4f46e5 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.manage-btn {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.manage-btn:hover {
+  background: rgba(107, 114, 128, 0.15);
+  transform: translateY(-1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .manage-btn {
+    color: #9ca3af;
+  }
+}
+
+/* Excluded Elements List */
+.excluded-list {
+  background: rgba(107, 114, 128, 0.05);
+  border: 1px solid rgba(107, 114, 128, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .excluded-list {
+    background: rgba(156, 163, 175, 0.05);
+    border-color: rgba(156, 163, 175, 0.1);
+  }
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.excluded-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.excluded-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  .excluded-item {
+    background: rgba(17, 24, 39, 0.5);
+  }
+}
+
+.excluded-selector {
+  flex: 1;
+  color: #374151;
+  word-break: break-all;
+}
+
+@media (prefers-color-scheme: dark) {
+  .excluded-selector {
+    color: #d1d5db;
+  }
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 /* Preview Section */
 .preview-section {
   display: flex;
@@ -429,4 +575,23 @@ body {
 /* Smooth animations */
 * {
   transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Custom scrollbar */
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: rgba(107, 114, 128, 0.1);
+  border-radius: 3px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.3);
+  border-radius: 3px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.5);
 }

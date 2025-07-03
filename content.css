@@ -31,3 +31,61 @@ a[data-rounded-web]:hover {
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
+
+/* Glowing animation styles */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.6), 0 0 40px rgba(147, 51, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.8), 0 0 60px rgba(147, 51, 234, 0.6);
+  }
+}
+
+.rounded-web-glow {
+  animation: glowPulse 1s ease-in-out;
+}
+
+/* Inspector mode styles */
+#rounded-web-inspector-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(147, 51, 234, 0.1) !important;
+  z-index: 999998 !important;
+  cursor: crosshair !important;
+  backdrop-filter: blur(2px) !important;
+  pointer-events: auto !important;
+}
+
+#rounded-web-inspector-tooltip {
+  position: fixed !important;
+  background: rgba(17, 24, 39, 0.95) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-family: monospace !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(147, 51, 234, 0.3) !important;
+  max-width: 300px !important;
+  word-break: break-all !important;
+}
+
+#rounded-web-glow-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 999999 !important;
+  background: radial-gradient(circle at 50% 50%, 
+    rgba(147, 51, 234, 0.3) 0%, 
+    rgba(147, 51, 234, 0.1) 30%, 
+    transparent 70%) !important;
+}

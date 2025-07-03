@@ -4,7 +4,9 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({
     globalEnabled: true,
     cornerRadius: 12,
-    disabledSites: []
+    disabledSites: [],
+    excludedSelectors: [],
+    visitedSites: []
   });
 });
 
@@ -21,9 +23,24 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-// Handle messages from content scripts
+// Handle messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Currently no background processing needed
-  // All logic is handled in content script and popup
+  // Handle inspector mode toggle messages
+  if (message.action === 'inspectorToggled') {
+    // Forward message to popup if it's open
+    chrome.runtime.sendMessage(message).catch(() => {
+      // Popup might not be open, ignore error
+    });
+  }
+  
   sendResponse({ success: true });
+});
+
+// Clean up old visit data periodically (keep only last 100 sites)
+chrome.storage.sync.get(['visitedSites']).then(result => {
+  const visitedSites = result.visitedSites || [];
+  if (visitedSites.length > 100) {
+    const trimmedSites = visitedSites.slice(-100);
+    chrome.storage.sync.set({ visitedSites: trimmedSites });
+  }
 });
