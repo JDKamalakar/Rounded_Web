@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rounded Web</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <h1>Rounded Web</h1>
+      </div>
+      <div class="status-indicator" id="statusIndicator">
+        <div class="status-dot"></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Site Toggle -->
+      <div class="control-group">
+        <div class="control-header">
+          <h3>Current Site</h3>
+          <span class="domain" id="currentDomain">example.com</span>
+        </div>
+        <div class="toggle-container">
+          <button class="toggle-btn" id="siteToggle">
+            <div class="toggle-slider"></div>
+            <span class="toggle-text" id="toggleText">Enabled</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Corner Radius Control -->
+      <div class="control-group" id="radiusControl">
+        <div class="control-header">
+          <h3>Corner Radius</h3>
+          <span class="value" id="radiusValue">12px</span>
+        </div>
+        <div class="slider-container">
+          <input type="range" id="radiusSlider" min="0" max="30" value="12" class="slider">
+          <div class="slider-track"></div>
+          <div class="slider-fill" id="sliderFill"></div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-section" id="previewSection">
+        <h3>Preview</h3>
+        <div class="preview-grid">
+          <div class="preview-item preview-image" id="previewImage"></div>
+          <div class="preview-item preview-video" id="previewVideo"></div>
+          <div class="preview-item preview-button" id="previewButton">Button</div>
+          <div class="preview-item preview-card" id="previewCard">Card</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-text">
+        Transform your web experience
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

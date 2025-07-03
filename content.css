@@ -1,0 +1,33 @@
+/* Enhanced styles for rounded corners */
+[data-rounded-web] {
+  transition: border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Ensure images and videos maintain aspect ratio */
+img[data-rounded-web],
+video[data-rounded-web] {
+  object-fit: cover !important;
+}
+
+/* Special handling for form elements */
+input[data-rounded-web],
+textarea[data-rounded-web],
+select[data-rounded-web] {
+  border-radius: inherit !important;
+}
+
+/* Smooth hover effects for interactive elements */
+button[data-rounded-web],
+.btn[data-rounded-web],
+a[data-rounded-web] {
+  transition: border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.2s ease,
+              box-shadow 0.2s ease !important;
+}
+
+button[data-rounded-web]:hover,
+.btn[data-rounded-web]:hover,
+a[data-rounded-web]:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
